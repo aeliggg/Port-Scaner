@@ -1,4 +1,5 @@
 import socket
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Port :
     type = ""
@@ -27,9 +28,25 @@ def scan (ip,port:Port):
             port.type="Closed"
     socketScan.close()
 
+def scanRange(ip, portStart:Port,portEnd:Port) :
+    portList=[]
+    for j in range (0,portEnd.id-portStart.id+1):
+        currentPort=Port("int:{j}",portStart.id+j)
+        portList.append(currentPort)
+    with ThreadPoolExecutor(max_workers=100) as executor:
+        for port in portList:
+            executor.submit(scan, ip, port)
+    return portList
+
+
 testPort=Port("test",8000)
+testPortEnd=Port("test",8500)
 scan("127.0.0.1", testPort)
 print(testPort.type)
+portList=scanRange("127.0.0.1", testPort,testPortEnd)
+for i in range (0,len(portList)) : 
+    print(portList[i].type)
+
 
 
     
